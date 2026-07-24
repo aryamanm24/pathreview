@@ -53,3 +53,29 @@ restores an accurate faithfulness score and makes the three related tests in
 returning HTTP 200 at http://localhost:5173/ with the backend on :8000. (Note: the
 `chromadb/chroma:0.4.22` container currently crashes on NumPy 2.0; not required for
 issue #152 and can be addressed separately.)
+
+## Week 8 — Reproduction & solution planning
+
+**Reproduction commit link:** https://github.com/aryamanm24/pathreview/commit/ef14e1fdee20304b99cb82b03f78dbe6abde58c4
+
+**Reproduction summary:**
+I reproduced the bug two ways. Running the issue's own snippet,
+`check("Knows Python. Knows SQL.", [{"text": "python expert"}, {"text": "sql expert"}])`
+returns `0.0` and `_is_supported("Knows Python", "python expert")` returns
+`False`, even though both short claims are fully backed by the context. Running
+`pytest tests/unit/test_faithfulness_checker.py` confirms the three tests named
+in the issue fail (`test_partial_support_returns_middle_score`,
+`test_multiple_context_chunks`, `test_multiple_claims_varying_support`), and I
+added `tests/unit/test_issue_152_reproduction.py` with two failing tests that
+capture the exact scenario.
+
+**PLAN.md link:** https://github.com/aryamanm24/pathreview/blob/fix/152-faithfulness-short-claim-support/PLAN.md
+
+**Walkthrough video (recommended):** (not recorded)
+
+**Blockers or open questions:**
+The main open question is tuning a single support rule that satisfies both the
+direct `_is_supported()` True/False tests and the `check()` mid-range score tests
+at the same time. Separately, `test_none_context_chunk_text` also fails, but that
+is the `text: None` crash tracked under issue #153, so I'm treating it as out of
+scope for this #152 fix.

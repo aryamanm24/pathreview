@@ -42,3 +42,27 @@ class TestIssue152Reproduction:
         as supported, but the >=2 meaningful-overlap rule rejects it today.
         """
         assert checker._is_supported("Knows Python", "python expert") is True
+
+    def test_partially_grounded_claim_scores_in_the_middle(
+        self, checker: FaithfulnessChecker
+    ) -> None:
+        """Feedback where the context supports some keywords but not others
+        should land between fully supported and fully unsupported.
+        """
+        score = checker.check(
+            "The developer shows Python expertise and Kubernetes knowledge.",
+            [{"text": "Strong Python programming skills demonstrated in projects."}],
+        )
+        assert 0.2 < score < 0.8
+
+    def test_comma_separated_skills_are_matched(self, checker: FaithfulnessChecker) -> None:
+        """Skills written as a comma-separated list must still match the
+        context; trailing punctuation should not block token overlap.
+        """
+        assert (
+            checker._is_supported(
+                "Python, JavaScript, and Docker",
+                "python and javascript and docker experience",
+            )
+            is True
+        )

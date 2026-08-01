@@ -79,3 +79,58 @@ direct `_is_supported()` True/False tests and the `check()` mid-range score test
 at the same time. Separately, `test_none_context_chunk_text` also fails, but that
 is the `text: None` crash tracked under issue #153, so I'm treating it as out of
 scope for this #152 fix.
+
+## Week 9 — Solution building & PR submission
+
+### Check-in 1 (mid-week)
+
+**Current progress:**
+Implemented the fix in `rag/evaluator/faithfulness_checker.py`, working through
+the PLAN.md sub-tasks: (1) added a `_tokenize()` helper that strips punctuation
+so `"Python,"` matches `python`; (2) replaced the fixed `>= 2` overlap rule with
+a graded `_support_score()` whose required matches scale with claim length; and
+(3) made `check()` average the per-claim scores so partially grounded feedback
+lands in the middle of the range. The three issue tests plus my reproduction
+tests now pass.
+
+**Next steps:**
+Finish reconciling `_is_supported()` (kept as a `>= 0.5` threshold over the new
+graded score), run the full `make check` / `make test-unit` to confirm no new
+failures, open the PR, and request peer feedback.
+
+**Blockers:**
+None. `test_none_context_chunk_text` still fails, but that is issue #153 (a
+separate `text: None` crash), not #152.
+
+---
+
+### Check-in 2 (end of week)
+
+**PR link:** https://github.com/ascherj/pathreview/pull/526
+
+**Branch:** `fix/152-faithfulness-short-claim-support`
+
+**What you built:**
+The faithfulness checker now grades each feedback claim by how much of it the
+retrieved context supports, instead of requiring at least two overlapping words.
+Tokenization strips punctuation, the support bar scales with claim length (a very
+short claim needs just one meaningful match), and `check()` averages the per-claim
+scores, so short and partially grounded feedback is scored fairly instead of 0.0.
+
+**Tests added or updated:**
+`tests/unit/test_issue_152_reproduction.py` — four regression tests covering the
+issue snippet, a single-keyword short claim, a partially grounded claim scoring
+mid-range, and comma-separated skills matching despite punctuation. The repo's
+existing `tests/unit/test_faithfulness_checker.py` tests for this module now pass
+unchanged.
+
+**Self-review confirmation:** [x] make check passes  [x] make test-unit passes
+
+(Note on pre-existing failures: this repo ships many unrelated failing tests and
+lint errors from other curated issues. Baseline before my change was 55 failing
+unit tests; after my change it is 50, and the diff is exactly the 5 faithfulness
+tests I fixed with no new failures. My changed files pass `ruff`, `black`, and
+`mypy`. Per the assignment's guidance, "passes" here means my change introduces
+no new failures.)
+
+**Draft PR feedback received from:** none

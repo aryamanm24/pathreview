@@ -134,3 +134,76 @@ tests I fixed with no new failures. My changed files pass `ruff`, `black`, and
 no new failures.)
 
 **Draft PR feedback received from:** none
+
+## Week 10 — Iteration & reflection
+
+### Reviewer feedback
+
+**Feedback received:** [ ] Yes  [x] No — still awaiting review
+
+**Summary of feedback:**
+No review or comments arrived on PR #526 by the end of the week. As of this
+entry the PR is still open with zero reviews and zero inline or conversation
+comments. (Per the Summer 2026 cohort note, reviewer feedback is not provided
+this term, so this is expected.)
+
+**How you responded:**
+There was nothing to respond to. If a review does come in later, I plan to read
+every comment first, sort them into clear fixes vs. points that need discussion,
+reply to each thread, and push follow-up commits rather than force-pushing over
+the existing diff.
+
+---
+
+### Reflection
+
+**What was harder than you expected?**
+The hard part was not writing the fix but making one scoring rule satisfy two
+sets of tests that pulled in opposite directions. The direct `_is_supported()`
+tests wanted a clean True/False, while the `check()` tests wanted a single
+partially grounded claim (like "The developer shows Python expertise and
+Kubernetes knowledge") to land between 0.2 and 0.8, which a plain
+supported/unsupported flag can never produce. I ended up working out the token
+counts for the failing cases by hand, and that is how I found that a length
+scaled threshold, `max(1, (len + 1) // 2)`, combined with averaging graded
+per-claim scores, was what threaded both needles at once.
+
+**What did you learn about working in a large codebase?**
+The biggest shift was realizing the tests were the real specification. The issue
+described the symptom, but the exact expected behavior lived in
+`tests/unit/test_faithfulness_checker.py`, and reading those assertions is what
+showed me the bug was actually three stacked problems: the `>= 2` overlap
+threshold, punctuation-blind tokenization (so "Python," never matched "python"),
+and binary per-claim scoring. I also learned to expect a messy baseline.
+`make test-unit` reported 55 failing tests before I changed anything, so
+"passing" meant "introduce no new failures," not a fully green suite. That is
+very different from my own projects, where I control the whole state.
+
+**How did AI tools help — and where did they fall short?**
+AI was most useful for orienting quickly: tracing the only caller of `check()` in
+`rag/evaluator/eval_suite.py` to confirm I would not break it, drafting PLAN.md
+and the PR description, and running the suite iteratively while I tuned the logic.
+Where it fell short was the precise threshold math. I could not just trust a
+generated formula, because a plain overlap ratio gave 0.167 for the partial
+support case and would have failed the 0.2 lower bound, so I had to reason
+through the specific token overlaps myself. AI also had no knowledge of the 55
+pre-existing failures, so establishing and documenting that baseline was on me.
+
+**What would you do differently if you started over?**
+I would open the PR as a draft earlier in the week instead of close to the
+deadline, so there was more room for feedback even in a term where reviews are
+rare. During issue selection I would also read the module's test file before
+committing to the issue, because the interdependence between the
+`_is_supported()` tests and the `check()` score-range tests was the real
+difficulty, and I only fully saw it in Week 9. I would still choose #152 again;
+it taught me more than a one-line crash fix would have.
+
+**What are you most proud of from this module?**
+I am most proud that the fix is principled rather than reverse-engineered from
+the tests. The graded `_support_score()` with a length-aware threshold is a real
+answer to "how well does the context support this claim," and it makes short
+claims like "Knows Python" score correctly without letting unrelated claims slip
+through. I am also proud of keeping the change honest and in scope: I left the
+`test_none_context_chunk_text` crash alone because it belongs to issue #153, and
+I documented the 55-to-50 failure baseline so a reviewer can trust exactly what
+my change did and did not touch.

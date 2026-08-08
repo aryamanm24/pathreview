@@ -1,4 +1,4 @@
-# PathReview — Module 3 Journal
+# PathReview: Module 3 Journal
 
 ## Week 7 — Issue selection
 
@@ -17,8 +17,8 @@ which only counts a claim as supported when it shares at least two meaningful
 "Knows Python." share just one meaningful token with a context that plainly
 supports them, so they are always marked unsupported and the overall score
 collapses to 0.0. A successful fix makes the support check scale to the length of
-the claim — so a genuinely covered one-keyword claim can still count as supported
-— while still rejecting claims the context does not actually back up, which
+the claim, so a genuinely covered one-keyword claim can still count as supported
+while still rejecting claims the context does not actually back up, which
 restores an accurate faithfulness score and makes the three related tests in
 `tests/unit/test_faithfulness_checker.py` pass.
 
@@ -28,7 +28,7 @@ restores an accurate faithfulness score and makes the three related tests in
 
 **Cohort ledger:** [x] Issue added to cohort ledger
 
-### Selection notes — "Is this right for me?" reasoning
+### Selection notes: "Is this right for me?" reasoning
 
 - **Scope is contained:** The fix is limited to a single function (`_is_supported()`)
   in one file (`rag/evaluator/faithfulness_checker.py`). No cross-module or
@@ -38,11 +38,11 @@ restores an accurate faithfulness score and makes the three related tests in
   `test_multiple_context_chunks`, `test_multiple_claims_varying_support`), so I have
   an objective definition of "done."
 - **No heavy external dependencies:** The checker and its tests run purely in
-  Python via `make test-unit` — they do not need the LLM provider or the ChromaDB
+  Python via `make test-unit`, so they do not need the LLM provider or the ChromaDB
   vector service, so a fully green vector DB isn't a blocker for this issue.
 - **Right difficulty level:** It's a Tier 1 bug, but it's a real logic fix (not a
   test-fixture tweak or one-line crash guard), so it forces me to understand how a
-  RAG system verifies that feedback is grounded in evidence — good learning value
+  RAG system verifies that feedback is grounded in evidence, which is good learning value
   for a first contribution.
 - **Risk / unknowns:** The main judgment call is choosing the right supported-ness
   rule (e.g. scaling required overlap to claim length) so that short valid claims
@@ -118,7 +118,7 @@ short claim needs just one meaningful match), and `check()` averages the per-cla
 scores, so short and partially grounded feedback is scored fairly instead of 0.0.
 
 **Tests added or updated:**
-`tests/unit/test_issue_152_reproduction.py` — four regression tests covering the
+`tests/unit/test_issue_152_reproduction.py` has four regression tests covering the
 issue snippet, a single-keyword short claim, a partially grounded claim scoring
 mid-range, and comma-separated skills matching despite punctuation. The repo's
 existing `tests/unit/test_faithfulness_checker.py` tests for this module now pass
